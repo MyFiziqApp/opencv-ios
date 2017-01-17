@@ -40,8 +40,8 @@
 //
 //M*/
 
-#ifndef __OPENCV_IMGCODECS_HPP__
-#define __OPENCV_IMGCODECS_HPP__
+#ifndef OPENCV_IMGCODECS_HPP
+#define OPENCV_IMGCODECS_HPP
 
 #include "opencv2/core.hpp"
 
@@ -73,7 +73,8 @@ enum ImreadModes {
        IMREAD_REDUCED_GRAYSCALE_4  = 32, //!< If set, always convert image to the single channel grayscale image and the image size reduced 1/4.
        IMREAD_REDUCED_COLOR_4      = 33, //!< If set, always convert image to the 3 channel BGR color image and the image size reduced 1/4.
        IMREAD_REDUCED_GRAYSCALE_8  = 64, //!< If set, always convert image to the single channel grayscale image and the image size reduced 1/8.
-       IMREAD_REDUCED_COLOR_8      = 65  //!< If set, always convert image to the 3 channel BGR color image and the image size reduced 1/8.
+       IMREAD_REDUCED_COLOR_8      = 65, //!< If set, always convert image to the 3 channel BGR color image and the image size reduced 1/8.
+       IMREAD_IGNORE_ORIENTATION   = 128 //!< If set, do not rotate the image according to EXIF's orientation flag.
      };
 
 //! Imwrite flags
@@ -88,7 +89,8 @@ enum ImwriteFlags {
        IMWRITE_PNG_STRATEGY        = 17, //!< One of cv::ImwritePNGFlags, default is IMWRITE_PNG_STRATEGY_DEFAULT.
        IMWRITE_PNG_BILEVEL         = 18, //!< Binary level PNG, 0 or 1, default is 0.
        IMWRITE_PXM_BINARY          = 32, //!< For PPM, PGM, or PBM, it can be a binary format flag, 0 or 1. Default value is 1.
-       IMWRITE_WEBP_QUALITY        = 64  //!< For WEBP, it can be a quality from 1 to 100 (the higher is the better). By default (without any parameter) and for quality above 100 the lossless compression is used.
+       IMWRITE_WEBP_QUALITY        = 64, //!< For WEBP, it can be a quality from 1 to 100 (the higher is the better). By default (without any parameter) and for quality above 100 the lossless compression is used.
+       IMWRITE_PAM_TUPLETYPE       = 128,//!< For PAM, sets the TUPLETYPE field to the corresponding string value that is defined for the format
      };
 
 //! Imwrite PNG specific flags used to tune the compression algorithm.
@@ -105,6 +107,16 @@ enum ImwritePNGFlags {
        IMWRITE_PNG_STRATEGY_HUFFMAN_ONLY = 2, //!< Use this value to force Huffman encoding only (no string match).
        IMWRITE_PNG_STRATEGY_RLE          = 3, //!< Use this value to limit match distances to one (run-length encoding).
        IMWRITE_PNG_STRATEGY_FIXED        = 4  //!< Using this value prevents the use of dynamic Huffman codes, allowing for a simpler decoder for special applications.
+     };
+
+//! Imwrite PAM specific tupletype flags used to define the 'TUPETYPE' field of a PAM file.
+enum ImwritePAMFlags {
+       IMWRITE_PAM_FORMAT_NULL = 0,
+       IMWRITE_PAM_FORMAT_BLACKANDWHITE = 1,
+       IMWRITE_PAM_FORMAT_GRAYSCALE = 2,
+       IMWRITE_PAM_FORMAT_GRAYSCALE_ALPHA = 3,
+       IMWRITE_PAM_FORMAT_RGB = 4,
+       IMWRITE_PAM_FORMAT_RGB_ALPHA = 5,
      };
 
 /** @brief Loads an image from a file.
@@ -146,6 +158,8 @@ Currently, the following file formats are supported:
     then [GDAL](http://www.gdal.org) driver will be used in order to decode the image by supporting
     the following formats: [Raster](http://www.gdal.org/formats_list.html),
     [Vector](http://www.gdal.org/ogr_formats.html).
+-   If EXIF information are embedded in the image file, the EXIF orientation will be taken into account
+    and thus the image will be rotated accordingly except if the flag @ref IMREAD_IGNORE_ORIENTATION is passed.
 @param filename Name of file to be loaded.
 @param flags Flag that can take values of cv::ImreadModes
 */
@@ -264,4 +278,4 @@ CV_EXPORTS_W bool imencode( const String& ext, InputArray img,
 
 } // cv
 
-#endif //__OPENCV_IMGCODECS_HPP__
+#endif //OPENCV_IMGCODECS_HPP

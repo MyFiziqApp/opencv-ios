@@ -42,8 +42,8 @@
 //
 //M*/
 
-#ifndef __OPENCV_CORE_CVDEF_H__
-#define __OPENCV_CORE_CVDEF_H__
+#ifndef OPENCV_CORE_CVDEF_H
+#define OPENCV_CORE_CVDEF_H
 
 //! @addtogroup core_utils
 //! @{
@@ -223,10 +223,6 @@ enum CpuFeatures {
 #  define CV_NEON 1
 #endif
 
-#if defined(__ARM_NEON__) || defined(__aarch64__)
-#  include <arm_neon.h>
-#endif
-
 #if defined __GNUC__ && defined __arm__ && (defined __ARM_PCS_VFP || defined __ARM_VFPV3__ || defined __ARM_NEON__) && !defined __SOFTFP__
 #  define CV_VFP 1
 #endif
@@ -307,11 +303,39 @@ enum CpuFeatures {
 #define CV_2PI 6.283185307179586476925286766559
 #define CV_LOG2 0.69314718055994530941723212145818
 
+#if defined __ARM_FP16_FORMAT_IEEE \
+    && !defined __CUDACC__
+#  define CV_FP16_TYPE 1
+#else
+#  define CV_FP16_TYPE 0
+#endif
+
+typedef union Cv16suf
+{
+    short i;
+#if CV_FP16_TYPE
+    __fp16 h;
+#endif
+    struct _fp16Format
+    {
+        unsigned int significand : 10;
+        unsigned int exponent    : 5;
+        unsigned int sign        : 1;
+    } fmt;
+}
+Cv16suf;
+
 typedef union Cv32suf
 {
     int i;
     unsigned u;
     float f;
+    struct _fp32Format
+    {
+        unsigned int significand : 23;
+        unsigned int exponent    : 8;
+        unsigned int sign        : 1;
+    } fmt;
 }
 Cv32suf;
 
@@ -394,9 +418,8 @@ Cv64suf;
 *          exchange-add operation for atomic operations on reference counters            *
 \****************************************************************************************/
 
-#if defined __INTEL_COMPILER && !(defined WIN32 || defined _WIN32)
-   // atomic increment on the linux version of the Intel(tm) compiler
-#  define CV_XADD(addr, delta) (int)_InterlockedExchangeAdd(const_cast<void*>(reinterpret_cast<volatile void*>(addr)), delta)
+#ifdef CV_XADD
+  // allow to use user-defined macro
 #elif defined __GNUC__
 #  if defined __clang__ && __clang_major__ >= 3 && !defined __ANDROID__ && !defined __EMSCRIPTEN__ && !defined(__CUDACC__)
 #    ifdef __ATOMIC_ACQ_REL
@@ -455,4 +478,4 @@ Cv64suf;
 
 //! @}
 
-#endif // __OPENCV_CORE_CVDEF_H__
+#endif // OPENCV_CORE_CVDEF_H
