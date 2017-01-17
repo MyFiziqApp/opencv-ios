@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name             = 'OpenCV-iOS'
-    s.version          = '3.1.1'
+    s.version          = '3.1.2'
     s.summary          = 'OpenCV (Computer Vision) for iOS as a dynamic library.'
 
     s.description      = <<-DESC
