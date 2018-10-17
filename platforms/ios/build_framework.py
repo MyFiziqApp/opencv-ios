@@ -23,8 +23,6 @@ Script will create <outputdir>, if it's missing, and a few its subdirectories:
 The script should handle minor OpenCV updates efficiently
 - it does not recompile the library from scratch each time.
 However, opencv2.framework directory is erased and recreated on each run.
-
-Adding --dynamic parameter will build opencv2.framework as App Store dynamic framework. Only iOS 8+ versions are supported.
 """
 
 from __future__ import print_function
@@ -95,7 +93,6 @@ class Builder:
         for t in alltargets:
             mainBD = self.getBD(mainWD, t)
             dirs.append(mainBD)
-
             cmake_flags = []
             if self.contrib:
                 cmake_flags.append("-DOPENCV_EXTRA_MODULES_PATH=%s" % self.contrib)
@@ -122,7 +119,6 @@ class Builder:
         return None
 
     def getCMakeArgs(self, arch, target):
-
         args = [
             "cmake",
             "-GXcode",
@@ -188,7 +184,6 @@ class Builder:
         cmakecmd.append(self.opencv)
         cmakecmd.extend(cmakeargs)
         execute(cmakecmd, cwd = builddir)
-
         # Clean and build
         clean_dir = os.path.join(builddir, "install")
         if os.path.isdir(clean_dir):
@@ -206,6 +201,7 @@ class Builder:
 
     def makeFramework(self, outdir, builddirs):
         name = "opencv2"
+        libname = "libopencv_merged.a"
 
         # set the current dir to the dst root
         framework_dir = os.path.join(outdir, "%s.framework" % name)
