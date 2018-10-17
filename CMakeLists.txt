@@ -149,7 +149,6 @@ endif()
 # ----------------------------------------------------------------------------
 # Detect compiler and target platform architecture
 # ----------------------------------------------------------------------------
-OCV_OPTION(ENABLE_CXX11 "Enable C++11 compilation mode" "${OPENCV_CXX11}")
 include(cmake/OpenCVDetectCXXCompiler.cmake)
 ocv_cmake_hook(POST_DETECT_COMPILER)
 
@@ -253,8 +252,8 @@ OCV_OPTION(WITH_WIN32UI        "Build with Win32 UI Backend support"         ON 
 OCV_OPTION(WITH_QUICKTIME      "Use QuickTime for Video I/O"                 OFF  IF APPLE )
 OCV_OPTION(WITH_QTKIT          "Use QTKit Video I/O backend"                 OFF  IF APPLE )
 OCV_OPTION(WITH_TBB            "Include Intel TBB support"                   OFF  IF (NOT IOS AND NOT WINRT) )
+OCV_OPTION(WITH_HPX            "Include Ste||ar Group HPX support"           OFF)
 OCV_OPTION(WITH_OPENMP         "Include OpenMP support"                      OFF)
-OCV_OPTION(WITH_CSTRIPES       "Include C= support"                          OFF  IF (WIN32 AND NOT WINRT)  )
 OCV_OPTION(WITH_PTHREADS_PF    "Use pthreads-based parallel_for"             ON   IF (NOT WIN32 OR MINGW) )
 OCV_OPTION(WITH_TIFF           "Include TIFF support"                        ON   IF (NOT IOS) )
 OCV_OPTION(WITH_UNICAP         "Include Unicap support (GPL)"                OFF  IF (UNIX AND NOT APPLE AND NOT ANDROID) )
@@ -271,6 +270,7 @@ OCV_OPTION(WITH_OPENCLAMDFFT   "Include AMD OpenCL FFT library support"      ON 
 OCV_OPTION(WITH_OPENCLAMDBLAS  "Include AMD OpenCL BLAS library support"     ON   IF (NOT ANDROID AND NOT IOS AND NOT WINRT) )
 OCV_OPTION(WITH_DIRECTX        "Include DirectX support"                     ON   IF (WIN32 AND NOT WINRT) )
 OCV_OPTION(WITH_INTELPERC      "Include Intel Perceptual Computing support"  OFF  IF (WIN32 AND NOT WINRT) )
+OCV_OPTION(WITH_LIBREALSENSE   "Include Intel librealsense support"          OFF  IF (NOT WITH_INTELPERC) )
 OCV_OPTION(WITH_VA             "Include VA support"                          OFF  IF (UNIX AND NOT ANDROID) )
 OCV_OPTION(WITH_VA_INTEL       "Include Intel VA-API/OpenCL support"         OFF  IF (UNIX AND NOT ANDROID) )
 OCV_OPTION(WITH_MFX            "Include Intel Media SDK support"             OFF   IF ((UNIX AND NOT ANDROID) OR (WIN32 AND NOT WINRT AND NOT MINGW)) )
@@ -282,6 +282,7 @@ OCV_OPTION(WITH_PROTOBUF       "Enable libprotobuf"                          ON 
 OCV_OPTION(WITH_IMGCODEC_HDR   "Include HDR support"                         ON)
 OCV_OPTION(WITH_IMGCODEC_SUNRASTER "Include SUNRASTER support"               ON)
 OCV_OPTION(WITH_IMGCODEC_PXM   "Include PNM (PBM,PGM,PPM) and PAM formats support" ON)
+OCV_OPTION(WITH_IMGCODEC_PFM   "Include PFM formats support"                 ON)
 OCV_OPTION(WITH_QUIRC          "Include library QR-code decoding"            ON)
 
 # OpenCV build components
@@ -373,8 +374,6 @@ endif()
 
 if(ANDROID OR WIN32)
   ocv_update(OPENCV_DOC_INSTALL_PATH doc)
-else()
-  ocv_update(OPENCV_DOC_INSTALL_PATH share/OpenCV/doc)
 endif()
 
 if(WIN32 AND CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
@@ -414,8 +413,6 @@ if(ANDROID)
   ocv_update(OPENCV_TEST_DATA_INSTALL_PATH "sdk/etc/testdata")
 elseif(WIN32)
   ocv_update(OPENCV_TEST_DATA_INSTALL_PATH "testdata")
-else()
-  ocv_update(OPENCV_TEST_DATA_INSTALL_PATH "share/OpenCV/testdata")
 endif()
 
 if(ANDROID)
@@ -428,6 +425,7 @@ if(ANDROID)
   ocv_update(OPENCV_INCLUDE_INSTALL_PATH sdk/native/jni/include)
   ocv_update(OPENCV_SAMPLES_SRC_INSTALL_PATH samples/native)
   ocv_update(OPENCV_OTHER_INSTALL_PATH   sdk/etc)
+  ocv_update(OPENCV_LICENSES_INSTALL_PATH "${OPENCV_OTHER_INSTALL_PATH}/licenses")
 else()
   set(LIBRARY_OUTPUT_PATH                "${OpenCV_BINARY_DIR}/lib")
   ocv_update(3P_LIBRARY_OUTPUT_PATH      "${OpenCV_BINARY_DIR}/3rdparty/lib${LIB_SUFFIX}")
@@ -443,42 +441,40 @@ else()
     ocv_update(OPENCV_JAR_INSTALL_PATH java)
     ocv_update(OPENCV_OTHER_INSTALL_PATH   etc)
     ocv_update(OPENCV_CONFIG_INSTALL_PATH  ".")
+    ocv_update(OPENCV_INCLUDE_INSTALL_PATH "include")
+    ocv_update(OPENCV_LICENSES_INSTALL_PATH "${OPENCV_OTHER_INSTALL_PATH}/licenses")
   else()
+    # Note: layout differs from OpenCV 3.4
     include(GNUInstallDirs)
-    ocv_update(OPENCV_LIB_INSTALL_PATH     ${CMAKE_INSTALL_LIBDIR}${LIB_SUFFIX})
-    ocv_update(OPENCV_3P_LIB_INSTALL_PATH  share/OpenCV/3rdparty/${OPENCV_LIB_INSTALL_PATH})
-    ocv_update(OPENCV_SAMPLES_SRC_INSTALL_PATH    share/OpenCV/samples)
-    ocv_update(OPENCV_JAR_INSTALL_PATH share/OpenCV/java)
-    ocv_update(OPENCV_OTHER_INSTALL_PATH   share/OpenCV)
-
-    if(NOT DEFINED OPENCV_CONFIG_INSTALL_PATH)
-      math(EXPR SIZEOF_VOID_P_BITS "8 * ${CMAKE_SIZEOF_VOID_P}")
-      if(LIB_SUFFIX AND NOT SIZEOF_VOID_P_BITS EQUAL LIB_SUFFIX)
-        ocv_update(OPENCV_CONFIG_INSTALL_PATH ${CMAKE_INSTALL_LIBDIR}${LIB_SUFFIX}/cmake/opencv)
-      else()
-        ocv_update(OPENCV_CONFIG_INSTALL_PATH share/OpenCV)
-      endif()
-    endif()
+    ocv_update(OPENCV_INCLUDE_INSTALL_PATH       "${CMAKE_INSTALL_INCLUDEDIR}/opencv4")
+    ocv_update(OPENCV_LIB_INSTALL_PATH           "${CMAKE_INSTALL_LIBDIR}${LIB_SUFFIX}")
+    ocv_update(OPENCV_CONFIG_INSTALL_PATH        "${OPENCV_LIB_INSTALL_PATH}/cmake/opencv4")
+    ocv_update(OPENCV_3P_LIB_INSTALL_PATH        "${OPENCV_LIB_INSTALL_PATH}/opencv4/3rdparty")
+    ocv_update(OPENCV_SAMPLES_SRC_INSTALL_PATH   "${CMAKE_INSTALL_DATAROOTDIR}/opencv4/samples")
+    ocv_update(OPENCV_DOC_INSTALL_PATH           "${CMAKE_INSTALL_DATAROOTDIR}/doc/opencv4")
+    ocv_update(OPENCV_JAR_INSTALL_PATH           "${CMAKE_INSTALL_DATAROOTDIR}/java/opencv4")
+    ocv_update(OPENCV_TEST_DATA_INSTALL_PATH     "${CMAKE_INSTALL_DATAROOTDIR}/opencv4/testdata")
+    ocv_update(OPENCV_OTHER_INSTALL_PATH         "${CMAKE_INSTALL_DATAROOTDIR}/opencv4")
+    ocv_update(OPENCV_LICENSES_INSTALL_PATH      "${CMAKE_INSTALL_DATAROOTDIR}/licenses/opencv4")
   endif()
-  ocv_update(OPENCV_INCLUDE_INSTALL_PATH "include")
 endif()
 
 ocv_update(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${OPENCV_LIB_INSTALL_PATH}")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 if(INSTALL_TO_MANGLED_PATHS)
-  set(OPENCV_INCLUDE_INSTALL_PATH ${OPENCV_INCLUDE_INSTALL_PATH}/opencv-${OPENCV_VERSION})
   foreach(v
+      OPENCV_INCLUDE_INSTALL_PATH
+      # file names include version (.so/.dll): OPENCV_LIB_INSTALL_PATH
+      OPENCV_CONFIG_INSTALL_PATH
       OPENCV_3P_LIB_INSTALL_PATH
       OPENCV_SAMPLES_SRC_INSTALL_PATH
-      OPENCV_CONFIG_INSTALL_PATH
       OPENCV_DOC_INSTALL_PATH
-      OPENCV_JAR_INSTALL_PATH
+      # JAR file name includes version: OPENCV_JAR_INSTALL_PATH
       OPENCV_TEST_DATA_INSTALL_PATH
       OPENCV_OTHER_INSTALL_PATH
     )
-    string(REPLACE "OpenCV" "OpenCV-${OPENCV_VERSION}" ${v} "${${v}}")
-    string(REPLACE "opencv" "opencv-${OPENCV_VERSION}" ${v} "${${v}}")
+    string(REGEX REPLACE "opencv[0-9]*" "opencv-${OPENCV_VERSION}" ${v} "${${v}}")
   endforeach()
 endif()
 
@@ -1014,9 +1010,6 @@ string(STRIP "${OPENCV_COMPILER_STR}" OPENCV_COMPILER_STR)
 status("")
 status("  C/C++:")
 status("    Built as dynamic libs?:" BUILD_SHARED_LIBS THEN YES ELSE NO)
-if(ENABLE_CXX11 OR HAVE_CXX11)
-status("    C++11:" HAVE_CXX11 THEN YES ELSE NO)
-endif()
 status("    C++ Compiler:"           ${OPENCV_COMPILER_STR})
 status("    C++ flags (Release):"    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
 status("    C++ flags (Debug):"      ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
@@ -1230,6 +1223,10 @@ if(WITH_IMGCODEC_PXM OR DEFINED HAVE_IMGCODEC_PXM)
   status("    PXM:" HAVE_IMGCODEC_PXM THEN "YES" ELSE "NO")
 endif()
 
+if(WITH_IMGCODEC_PFM OR DEFINED HAVE_IMGCODEC_PFM)
+  status("    PFM:" HAVE_IMGCODEC_PFM THEN "YES" ELSE "NO")
+endif()
+
 # ========================== VIDEO IO ==========================
 status("")
 status("  Video I/O:")
@@ -1351,7 +1348,7 @@ endif()
 # Order is similar to CV_PARALLEL_FRAMEWORK in core/src/parallel.cpp
 ocv_build_features_string(parallel_status EXCLUSIVE
   IF HAVE_TBB THEN "TBB (ver ${TBB_VERSION_MAJOR}.${TBB_VERSION_MINOR} interface ${TBB_INTERFACE_VERSION})"
-  IF HAVE_CSTRIPES THEN "C="
+  IF HAVE_HPX THEN "HPX"
   IF HAVE_OPENMP THEN "OpenMP"
   IF HAVE_GCD THEN "GCD"
   IF WINRT OR HAVE_CONCURRENCY THEN "Concurrency"

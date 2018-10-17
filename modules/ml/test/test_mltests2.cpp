@@ -237,7 +237,7 @@ TEST(ML_ANN, ActivationFunction)
         x->save(dataname + activationName[i] + ".yml");
 #else
         Ptr<ml::ANN_MLP> y = Algorithm::load<ANN_MLP>(dataname + activationName[i] + ".yml");
-        ASSERT_TRUE(y != NULL) << "Could not load   " << dataname + activationName[i] + ".yml";
+        ASSERT_TRUE(y) << "Could not load   " << dataname + activationName[i] + ".yml";
         Mat testSamples = tdata->getTestSamples();
         Mat rx, ry, dst;
         x->predict(testSamples, rx);
@@ -279,7 +279,7 @@ TEST_P(ML_ANN_METHOD, Test)
 
 #ifdef GENERATE_TESTDATA
     {
-    Ptr<ml::ANN_MLP> xx = ml::ANN_MLP_ANNEAL::create();
+    Ptr<ml::ANN_MLP> xx = ml::ANN_MLP::create();
     Mat_<int> layerSizesXX(1, 4);
     layerSizesXX(0, 0) = tdata->getNVars();
     layerSizesXX(0, 1) = 30;
@@ -299,7 +299,7 @@ TEST_P(ML_ANN_METHOD, Test)
     {
         FileStorage fs;
         fs.open(dataname + "_init_weight.yml.gz", FileStorage::READ);
-        Ptr<ml::ANN_MLP> x = ml::ANN_MLP_ANNEAL::create();
+        Ptr<ml::ANN_MLP> x = ml::ANN_MLP::create();
         x->read(fs.root());
         x->setTrainMethod(methodType);
         if (methodType == ml::ANN_MLP::ANNEAL)
@@ -330,7 +330,7 @@ TEST_P(ML_ANN_METHOD, Test)
 #endif
         ASSERT_FALSE(r_gold.empty());
         Ptr<ml::ANN_MLP> y = Algorithm::load<ANN_MLP>(filename);
-        ASSERT_TRUE(y != NULL) << "Could not load   " << filename;
+        ASSERT_TRUE(y) << "Could not load   " << filename;
         Mat rx, ry;
         for (int j = 0; j < 4; j++)
         {

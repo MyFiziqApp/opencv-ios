@@ -77,6 +77,10 @@ ocv_target_link_libraries(${the_module} LINK_PRIVATE
     "${OPENCV_HAL_LINKER_LIBS}"
 )
 
+if(HAVE_HPX)
+  ocv_target_link_libraries(${the_module} LINK_PRIVATE "${HPX_LIBRARIES}")
+endif()
+
 ocv_add_accuracy_tests()
 ocv_add_perf_tests()
 

@@ -969,10 +969,6 @@ Ptr<CascadeClassifierImpl::MaskGenerator> CascadeClassifierImpl::getMaskGenerato
 
 Ptr<BaseCascadeClassifier::MaskGenerator> createFaceDetectionMaskGenerator()
 {
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::useTegra())
-        return tegra::getCascadeClassifierMaskGenerator();
-#endif
     return Ptr<BaseCascadeClassifier::MaskGenerator>();
 }
 
@@ -1607,8 +1603,7 @@ bool CascadeClassifierImpl::read_(const FileNode& root)
     return featureEvaluator->read(fn, data.origWinSize);
 }
 
-template<> void DefaultDeleter<CvHaarClassifierCascade>::operator ()(CvHaarClassifierCascade* obj) const
-{ cvReleaseHaarClassifierCascade(&obj); }
+void DefaultDeleter<CvHaarClassifierCascade>::operator ()(CvHaarClassifierCascade* obj) const { cvReleaseHaarClassifierCascade(&obj); }
 
 
 BaseCascadeClassifier::~BaseCascadeClassifier()

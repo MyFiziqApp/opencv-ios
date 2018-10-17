@@ -192,11 +192,6 @@ void CpuMatcher::match(const ImageFeatures &features1, const ImageFeatures &feat
     CV_Assert(features1.descriptors.type() == features2.descriptors.type());
     CV_Assert(features2.descriptors.depth() == CV_8U || features2.descriptors.depth() == CV_32F);
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::useTegra() && tegra::match2nearest(features1, features2, matches_info, match_conf_))
-        return;
-#endif
-
     matches_info.matches.clear();
 
     Ptr<cv::DescriptorMatcher> matcher;
@@ -585,13 +580,13 @@ void OrbFeaturesFinder::find(InputArray image, ImageFeatures &features)
     }
 }
 
-AKAZEFeaturesFinder::AKAZEFeaturesFinder(int descriptor_type,
+AKAZEFeaturesFinder::AKAZEFeaturesFinder(AKAZE::DescriptorType descriptor_type,
                                          int descriptor_size,
                                          int descriptor_channels,
                                          float threshold,
                                          int nOctaves,
                                          int nOctaveLayers,
-                                         int diffusivity)
+                                         KAZE::DiffusivityType diffusivity)
 {
     akaze = AKAZE::create(descriptor_type, descriptor_size, descriptor_channels,
                           threshold, nOctaves, nOctaveLayers, diffusivity);
